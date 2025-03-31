@@ -1,10 +1,44 @@
-from flask import Flask, render_template, request
-import pandas as pd
+from flask import Flask, render_template, request, send_file
+import os
+
+from pd_report_gen import (
+    generate_aluminum_df,
+    generate_navel_df,
+    generate_orders_df,
+    generate_vulcan_df,
+)
 
 app = Flask(__name__)
 
-# TODO: check if the route is correct
-final_df = pd.read_csv("reporte.csv", parse_dates=["date"])
+orders_file = "./Archivos/ORDENES AZTEC SMI 2024.xlsm"
+orders_sheet = "ORDENES"
+vulc_sheet = "VULCANIZADO"
+
+alumn_files = [
+    (
+        "./Archivos/LAMINAS GALVANIZADOS RELACION DE SCRAP EN CONTENEDORES METAL-HULE.xlsm",
+        "RELACION GALVANIZADO",
+    ),
+    (
+        "./Archivos/LAMINAS ALUMINIOS RELACION DE SCRAP EN CONTENEDORES METAL-HULE.xlsm",
+        "RELACION ALUMINIO",
+    ),
+    (
+        "./Archivos/LAMINAS STAINLESS RELACION DE SCRAP EN CONTENEDORES METAL-HULE.xlsm",
+        "RELACION STAINLESS",
+    ),
+]
+
+navel_files = [
+    (
+        "./Archivos/OMBLIGOS ALUMINIOS RELACION DE SCRAP EN CONTENEDORES METAL-HULE.xlsm",
+        "RELACION ALUMINIO",
+    ),
+    (
+        "./Archivos/OMBLIGOS GALVANIZADOS RELACION DE SCRAP EN CONTENEDORES METAL-HULE.xlsm",
+        "RELACION GALVANIZADO",
+    ),
+]
 
 
 @app.route("/")
@@ -13,19 +47,29 @@ def index():
         start_date = request.form["start_date"]
         end_date = request.form["end_date"]
 
-        filtered_df = final_df[
-            (final_df["date"] >= start_date) & (final_df["date"] <= end_date)
-        ]
+        # Generate filtered dfs
+        orders_df = generate_orders_df(orders_file, orders_sheet, start_date, end_date)
+        vulcan_df = generate_vulcan_df(orders_file, vulc_sheet, start_date, end_date)
+        aluminum_df = generate_aluminum_df(alumn_files, start_date, end_date)
+        navel_df = generate_navel_df(navel_files, start_date, end_date)
 
-        # save filtered df to csv
-        # BUG: better save it in excel format
-        filtered_df.to_csv("reporte.csv", index=False)
-
-        return render_template(
-            "index.html",
-            tables=[filtered_df.to_html()],
-            titles=filtered_df.columns.values,
+        # Merge data
+        merged_df = (
+            orders_df.merge(vulcan_df, on=["DATE", "ORDER_ID"], how="left")
+            .merge(aluminum_df, on=["DATE", "ORDER_ID"], how="left")
+            .merge(navel_df, on=["DATE", "ORDER_ID"], how="left")
         )
+
+        # Custom name for each archive based on the dates
+        filename = f"reporte_{start_date}_to_{end_date}.xlsx"
+        filepath = os.path.join("reportes_generados", filename)
+
+        # Save the filtered df to excel
+        os.makedirs("reportes_generados", exist_ok=True)
+        merged_df.to_excel(filepath, index=False)
+
+        return send_file(filepath, as_attachment=True)
+
     return render_template("index.html")
 
 
