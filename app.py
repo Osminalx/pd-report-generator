@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, send_file
+import pandas as pd
 import os
 
 from pd_report_gen import (
@@ -41,11 +42,11 @@ navel_files = [
 ]
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        start_date = request.form["start_date"]
-        end_date = request.form["end_date"]
+        start_date = pd.to_datetime(request.form["start_date"])  # Convertir aquí
+        end_date = pd.to_datetime(request.form["end_date"])
 
         # Generate filtered dfs
         orders_df = generate_orders_df(orders_file, orders_sheet, start_date, end_date)
