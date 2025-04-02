@@ -45,8 +45,17 @@ navel_files = [
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        start_date = pd.to_datetime(request.form["start_date"])  # Convertir aquí
-        end_date = pd.to_datetime(request.form["end_date"])
+        start_date_str = request.form["start_date"]  
+        end_date_str = request.form["end_date"]
+
+        filename = f"reporte_{start_date_str}_to_{end_date_str}.xlsx"
+        filepath = os.path.join("reportes_generados", filename)
+
+        if os.path.exists(filepath):
+            return send_file(filepath, as_attachment=True)
+
+        start_date = pd.to_datetime(start_date_str).date()
+        end_date = pd.to_datetime(end_date_str).date()
 
         # Generate filtered dfs
         orders_df = generate_orders_df(orders_file, orders_sheet, start_date, end_date)
@@ -62,7 +71,6 @@ def index():
         )
 
         # Custom name for each archive based on the dates
-        filename = f"reporte_{start_date}_to_{end_date}.xlsx"
         filepath = os.path.join("reportes_generados", filename)
 
         # Save the filtered df to excel
