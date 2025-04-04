@@ -53,7 +53,7 @@ def generate_aluminum_df(
     for file, sheet in files:
         df = pd.read_excel(file, sheet_name=sheet, header=9, engine="openpyxl")
         df = df[["Fecha", "# de Orden", "SCRAP/SHT"]]
-        df.columns = ["DATE", "ORDER_ID", "SCRAP_SHT_ALUMINUM"]
+        df.columns = ["DATE", "ORDER_ID", "SCRAP_LAMINAS"]
 
         # Convertir y filtrar
         df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce").dt.date
@@ -74,8 +74,8 @@ def generate_navel_df(
 
     for file, sheet in files:
         df = pd.read_excel(file, sheet_name=sheet, header=9, engine="openpyxl")
-        df = df.iloc[:, [1, 2, 16]]
-        df.columns = ["DATE", "ORDER_ID", "SCRAP_SHT_NAVEL"]
+        df = df.iloc[:, [1, 2, 18]]
+        df.columns = ["DATE", "ORDER_ID", "SCRAP_OMBLIGO_RONDANAS"]
 
         # Convertir y filtrar
         df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce").dt.date
