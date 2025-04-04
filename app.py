@@ -45,7 +45,7 @@ navel_files = [
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        start_date_str = request.form["start_date"]  
+        start_date_str = request.form["start_date"]
         end_date_str = request.form["end_date"]
 
         filename = f"reporte_{start_date_str}_to_{end_date_str}.xlsx"
@@ -58,16 +58,20 @@ def index():
         end_date = pd.to_datetime(end_date_str).date()
 
         # Generate filtered dfs
-        orders_df = generate_orders_df(orders_file, orders_sheet, start_date, end_date)
+        orders_df = generate_orders_df(orders_file, orders_sheet)
         vulcan_df = generate_vulcan_df(orders_file, vulc_sheet, start_date, end_date)
         aluminum_df = generate_aluminum_df(alumn_files, start_date, end_date)
         navel_df = generate_navel_df(navel_files, start_date, end_date)
 
-        # Merge data
-        merged_df = (
-            orders_df.merge(vulcan_df, on=["DATE", "ORDER_ID"], how="left")
-            .merge(aluminum_df, on=["DATE", "ORDER_ID"], how="left")
-            .merge(navel_df, on=["DATE", "ORDER_ID"], how="left")
+        orders_df = orders_df.rename(columns={"DATE": "ORDER_DATE"})
+
+        # Realizar el merge usando ORDER_ID
+        merged_df = orders_df.merge(
+            vulcan_df.merge(
+                aluminum_df.merge(navel_df, on=["ORDER_ID", "DATE"], how="left"),
+                on=["ORDER_ID", "DATE"],
+                how="left",
+            )
         )
 
         # Custom name for each archive based on the dates

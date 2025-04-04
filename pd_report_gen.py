@@ -1,11 +1,11 @@
 import pandas as pd
 
 
-def generate_orders_df(
-    file: str, sheet: str, start_date: str, end_date: str
-) -> pd.DataFrame:
+def generate_orders_df(file: str, sheet: str) -> pd.DataFrame:
     # Orders df
-    orders_df = pd.read_excel(file, sheet_name=sheet, header=None, skiprows=1)
+    orders_df = pd.read_excel(
+        file, sheet_name=sheet, header=None, skiprows=1, engine="openpyxl"
+    )
 
     orders_columns = [0, 1, 2, 3, 10]
 
@@ -16,20 +16,14 @@ def generate_orders_df(
     orders_df["DATE"] = pd.to_datetime(orders_df["DATE"], errors="coerce").dt.date
 
     orders_df = orders_df[orders_df["DATE"].notna()]
-
-    start_date_dt = pd.to_datetime(start_date).date()
-    end_date_dt = pd.to_datetime(end_date).date()
-
-    mask = (orders_df["DATE"] >= start_date_dt) & (orders_df["DATE"] <= end_date_dt)
-
-    return orders_df[mask]
+    return orders_df
 
 
 def generate_vulcan_df(
     file: str, sheet: str, start_date: str, end_date: str
 ) -> pd.DataFrame:
     # Vulcanized df
-    vulcan_df = pd.read_excel(file, sheet_name=sheet)
+    vulcan_df = pd.read_excel(file, sheet_name=sheet, engine="openpyxl")
 
     vulc_columns = ["DATE", "JOB", "QTY TOTAL VULCANIZADO"]
 
@@ -44,9 +38,7 @@ def generate_vulcan_df(
     start_date_dt = pd.to_datetime(start_date).date()
     end_date_dt = pd.to_datetime(end_date).date()
 
-    mask = (vulcan_df["DATE"] >= start_date_dt) & (
-        vulcan_df["DATE"] <= end_date_dt
-    )
+    mask = (vulcan_df["DATE"] >= start_date_dt) & (vulcan_df["DATE"] <= end_date_dt)
 
     return vulcan_df[mask]
 
@@ -55,11 +47,11 @@ def generate_aluminum_df(
     files: list[(str, str)], start_date: str, end_date: str
 ) -> pd.DataFrame:
     dataframes = []
-    start_date = pd.to_datetime(start_date).date()  
+    start_date = pd.to_datetime(start_date).date()
     end_date = pd.to_datetime(end_date).date()
 
     for file, sheet in files:
-        df = pd.read_excel(file, sheet_name=sheet, header=9)
+        df = pd.read_excel(file, sheet_name=sheet, header=9, engine="openpyxl")
         df = df[["Fecha", "# de Orden", "SCRAP/SHT"]]
         df.columns = ["DATE", "ORDER_ID", "SCRAP_SHT_ALUMINUM"]
 
@@ -81,7 +73,7 @@ def generate_navel_df(
     end_date = pd.to_datetime(end_date).date()
 
     for file, sheet in files:
-        df = pd.read_excel(file, sheet_name=sheet, header=9)
+        df = pd.read_excel(file, sheet_name=sheet, header=9, engine="openpyxl")
         df = df.iloc[:, [1, 2, 16]]
         df.columns = ["DATE", "ORDER_ID", "SCRAP_SHT_NAVEL"]
 
