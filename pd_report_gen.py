@@ -62,7 +62,12 @@ def generate_aluminum_df(
 
         dataframes.append(df)
 
-    return pd.concat(dataframes, ignore_index=True)
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    combined_df = combined_df.groupby(["ORDER_ID", "DATE"], as_index=False)[
+        "SCRAP_LAMINAS"
+    ].sum()
+
+    return combined_df
 
 
 def generate_navel_df(
@@ -84,4 +89,7 @@ def generate_navel_df(
 
         dataframes.append(df)
 
-    return pd.concat(dataframes, ignore_index=True)
+    combined_df = pd.concat(dataframes, ignore_index=True)
+    combined_df = combined_df.groupby(["ORDER_ID", "DATE"], as_index=False)["SCRAP_OMBLIGO_RONDANAS"].sum()
+    
+    return combined_df

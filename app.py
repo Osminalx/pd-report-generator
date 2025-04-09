@@ -74,6 +74,29 @@ def index():
             )
         )
 
+        group_cols = [
+            "STATUS",
+            "ORDER_ID",
+            "ORDER_DATE",
+            "CUSTOMER",
+            "SHEETS ORDER",
+            "DATE",
+            "QTY_TOTAL_VULCANIZADO",
+        ]
+
+        merged_df = merged_df.groupby(group_cols, as_index=False).agg(
+            {
+                "SCRAP_LAMINAS": lambda x: x.dropna().iloc[0]
+                if not x.dropna().empty
+                else pd.NA,
+                "SCRAP_OMBLIGO_RONDANAS": lambda x: x.dropna().iloc[0]
+                if not x.dropna().empty
+                else pd.NA,
+            }
+        )
+
+        merged_df.fillna("---", inplace=True)
+
         # Custom name for each archive based on the dates
         filepath = os.path.join("reportes_generados", filename)
 
