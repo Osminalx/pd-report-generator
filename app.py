@@ -97,6 +97,23 @@ def index():
 
         merged_df.fillna("---", inplace=True)
 
+        merged_df = merged_df.sort_values(["ORDER_ID", "DATE"])
+
+        def replace_consecutive_duplicates(group):
+            group["SCRAP_LAMINAS"] = group["SCRAP_LAMINAS"].where(
+                group["SCRAP_LAMINAS"] != group["SCRAP_LAMINAS"].shift(), ""
+            )
+            group["SCRAP_OMBLIGO_RONDANAS"] = group["SCRAP_OMBLIGO_RONDANAS"].where(
+                group["SCRAP_OMBLIGO_RONDANAS"]
+                != group["SCRAP_OMBLIGO_RONDANAS"].shift(),
+                "",
+            )
+            return group
+
+        merged_df = merged_df.groupby("ORDER_ID", group_keys=False).apply(
+            replace_consecutive_duplicates
+        )
+
         # Custom name for each archive based on the dates
         filepath = os.path.join("reportes_generados", filename)
 

@@ -1,3 +1,5 @@
+from datetime import date
+
 import pandas as pd
 
 
@@ -20,7 +22,7 @@ def generate_orders_df(file: str, sheet: str) -> pd.DataFrame:
 
 
 def generate_vulcan_df(
-    file: str, sheet: str, start_date: str, end_date: str
+    file: str, sheet: str, start_date: date, end_date: date
 ) -> pd.DataFrame:
     # Vulcanized df
     vulcan_df = pd.read_excel(file, sheet_name=sheet, engine="openpyxl")
@@ -44,7 +46,7 @@ def generate_vulcan_df(
 
 
 def generate_aluminum_df(
-    files: list[(str, str)], start_date: str, end_date: str
+    files: list[tuple[str, str]], start_date: date, end_date: date
 ) -> pd.DataFrame:
     dataframes = []
     start_date = pd.to_datetime(start_date).date()
@@ -57,12 +59,13 @@ def generate_aluminum_df(
 
         # Convertir y filtrar
         df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce").dt.date
-        df = df[df["DATE"].notna()]
+        df = df[pd.notna(df["DATE"])]
         df = df[(df["DATE"] >= start_date) & (df["DATE"] <= end_date)]
 
         dataframes.append(df)
 
     combined_df = pd.concat(dataframes, ignore_index=True)
+
     combined_df = combined_df.groupby(["ORDER_ID", "DATE"], as_index=False)[
         "SCRAP_LAMINAS"
     ].sum()
@@ -71,7 +74,7 @@ def generate_aluminum_df(
 
 
 def generate_navel_df(
-    files: list[(str, str)], start_date: str, end_date: str
+    files: list[tuple[str, str]], start_date: date, end_date: date
 ) -> pd.DataFrame:
     dataframes = []
     start_date = pd.to_datetime(start_date).date()
@@ -90,6 +93,9 @@ def generate_navel_df(
         dataframes.append(df)
 
     combined_df = pd.concat(dataframes, ignore_index=True)
-    combined_df = combined_df.groupby(["ORDER_ID", "DATE"], as_index=False)["SCRAP_OMBLIGO_RONDANAS"].sum()
-    
+    combined_df = combined_df.groupby(["ORDER_ID", "DATE"], as_index=False)[
+        "SCRAP_OMBLIGO_RONDANAS"
+    ].sum()
+
     return combined_df
+
